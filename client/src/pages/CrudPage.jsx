@@ -215,9 +215,13 @@ const fieldConfigs = {
   },
 };
 
+const PAGE_LIMIT = 20;
+
 export default function CrudPage({ resource, title }) {
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -227,12 +231,16 @@ export default function CrudPage({ resource, title }) {
 
   const config = fieldConfigs[resource] || { columns: ['id'], form: [] };
 
-  const fetchData = async () => {
+  const fetchData = async (p = page) => {
     setLoading(true);
     try {
-      const res = await api.get(`/${resource}`, { params: { search: search || undefined } });
+      const offset = (p - 1) * PAGE_LIMIT;
+      const res = await api.get(`/${resource}`, {
+        params: { search: search || undefined, limit: PAGE_LIMIT, offset }
+      });
       setData(res.data.data);
       setTotal(res.data.total);
+      setTotalPages(res.data.totalPages || Math.ceil(res.data.total / PAGE_LIMIT) || 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -240,7 +248,8 @@ export default function CrudPage({ resource, title }) {
     }
   };
 
-  useEffect(() => { fetchData(); }, [resource, search]);
+  useEffect(() => { setPage(1); }, [resource, search]);
+  useEffect(() => { fetchData(page); }, [resource, search, page]);
 
   const handleNew = () => {
     setEditItem(null);
@@ -271,7 +280,7 @@ export default function CrudPage({ resource, title }) {
         await api.post(`/${resource}`, formData);
       }
       setShowModal(false);
-      fetchData();
+      fetchData(page);
     } catch (err) {
       alert(err.response?.data?.error || 'Error saving');
     }
@@ -282,7 +291,7 @@ export default function CrudPage({ resource, title }) {
     if (!confirm(`Delete this ${title.replace(/s$/, '')}?`)) return;
     try {
       await api.delete(`/${resource}/${item.id}`);
-      fetchData();
+      fetchData(page);
     } catch (err) {
       alert(err.response?.data?.error || 'Error deleting');
     }
@@ -361,6 +370,29 @@ export default function CrudPage({ resource, title }) {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 16 }}>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </button>
+          <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
+            Page {page} of {totalPages} ({total} total)
+          </span>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>

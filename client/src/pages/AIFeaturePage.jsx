@@ -354,7 +354,11 @@ export default function AIFeaturePage({ feature, title }) {
       const res = await api.post(`/ai/${feature}`, formData);
       setResult(res.data);
     } catch (err) {
-      setResult({ success: false, data: err.response?.data?.error || 'Request failed. Please try again.' });
+      const status = err.response?.status;
+      const msg = status === 429
+        ? 'AI rate limit reached. Please wait before making more analysis requests.'
+        : (err.response?.data?.error || 'Request failed. Please try again.');
+      setResult({ success: false, data: msg });
     } finally {
       setLoading(false);
     }

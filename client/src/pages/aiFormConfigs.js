@@ -327,6 +327,28 @@ const aiFormConfigs = {
       { name: 'currentTrends', label: 'Current Trends', type: 'textarea', placeholder: 'Warm minimalism, biophilic design, curved furniture, earth tones' },
     ],
   },
+  'competitor-analysis': {
+    desc: 'Comparable-listing competitive analysis (pricing, staging gaps, differentiation, marketing).',
+    fields: [
+      { name: 'subjectProperty', label: 'Subject Property', type: 'textarea', placeholder: 'e.g., 4 bed/3 bath single family, 2400 sqft, $850k, recently staged contemporary' },
+      { name: 'comparables', label: 'Comparable Listings', type: 'textarea', placeholder: 'Up to 5 comps: address, price, sqft, beds/baths, status, days on market, staging notes' },
+      { name: 'market', label: 'Market', type: 'text', placeholder: 'Austin, TX suburban' },
+      { name: 'priceRange', label: 'Price Range', type: 'select', options: ['Under $300k', '$300k-$500k', '$500k-$800k', '$800k-$1.2M', '$1.2M-$2M', '$2M+'] },
+      { name: 'targetSale', label: 'Target Sale Window', type: 'select', options: ['<14 days', '14-30 days', '30-60 days', '60+ days'] },
+      { name: 'goals', label: 'Goals / Constraints', type: 'textarea', placeholder: 'Avoid price cut, beat top staged comp on appeal, maximize photo engagement' },
+    ],
+  },
+  'buyer-persona-targeting': {
+    desc: 'Top buyer personas with persona-specific staging, photography, and marketing guidance.',
+    fields: [
+      { name: 'propertyType', label: 'Property Type', type: 'select', options: ['Single Family', 'Condo', 'Townhouse', 'Penthouse', 'Loft', 'Cabin', 'Luxury Estate'] },
+      { name: 'location', label: 'Location', type: 'text', placeholder: 'Neighborhood, city, state' },
+      { name: 'priceRange', label: 'Price Range', type: 'select', options: ['Under $300k', '$300k-$500k', '$500k-$800k', '$800k-$1.2M', '$1.2M-$2M', '$2M+'] },
+      { name: 'features', label: 'Key Features', type: 'textarea', placeholder: 'Top features (e.g., chef kitchen, primary suite, walkable, top-rated schools)' },
+      { name: 'lifestyle', label: 'Lifestyle Hints', type: 'textarea', placeholder: 'Optional notes (e.g., walk score 92, near tech offices, family district)' },
+      { name: 'currentMarketing', label: 'Current Marketing Channels', type: 'textarea', placeholder: 'MLS, Zillow, agent IG, brokerage email blast' },
+    ],
+  },
 };
 
 export default aiFormConfigs;

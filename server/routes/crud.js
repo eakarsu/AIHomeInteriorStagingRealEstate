@@ -35,7 +35,17 @@ function createCrudRoutes(tableName, columns, searchColumns = []) {
 
       const result = await pool.query(query, params);
       const countResult = await pool.query(`SELECT COUNT(*) FROM ${tableName}`);
-      res.json({ data: result.rows, total: parseInt(countResult.rows[0].count) });
+      const total = parseInt(countResult.rows[0].count);
+      const parsedLimit = limit ? parseInt(limit) : total;
+      const parsedOffset = offset ? parseInt(offset) : 0;
+      const page = parsedLimit > 0 ? Math.floor(parsedOffset / parsedLimit) + 1 : 1;
+      res.json({
+        data: result.rows,
+        total,
+        page,
+        limit: parsedLimit,
+        totalPages: parsedLimit > 0 ? Math.ceil(total / parsedLimit) : 1
+      });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

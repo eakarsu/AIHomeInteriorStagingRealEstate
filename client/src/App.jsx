@@ -6,7 +6,31 @@ import Layout from './components/Layout';
 import CrudPage from './pages/CrudPage';
 import DetailPage from './pages/DetailPage';
 import AIFeaturePage from './pages/AIFeaturePage';
+import FurniturePlanner from './pages/FurniturePlanner';
+import ListingCopyGenerator from './pages/ListingCopyGenerator';
+import ROISimulator from './pages/ROISimulator';
 import './App.css';
+
+// === Batch 04 Gaps & Frontend Mounts ===
+import CfAgenticStagingOrchestrationGenerating from './pages/CfAgenticStagingOrchestrationGenerating';
+import Cf3dVirtualStagingWithArExport from './pages/Cf3dVirtualStagingWithArExport';
+import CfMlsIntegrationWithCompBasedStagingp from './pages/CfMlsIntegrationWithCompBasedStagingp';
+import CfBuyerPersonaPsychologyModelingPerNe from './pages/CfBuyerPersonaPsychologyModelingPerNe';
+import CfTimeToSalePredictionTiedTo from './pages/CfTimeToSalePredictionTiedTo';
+import CfAgentCommissionOptimizerWithPerforma from './pages/CfAgentCommissionOptimizerWithPerforma';
+import GapNoCompetitorMlsCompAnalysisEndpoint from './pages/GapNoCompetitorMlsCompAnalysisEndpoint';
+import GapNoBuyerPersonaTargetingEndpoint from './pages/GapNoBuyerPersonaTargetingEndpoint';
+import GapNoAutomatedPhotoEnhancementPipeline from './pages/GapNoAutomatedPhotoEnhancementPipeline';
+import GapNoVendorcontractorMarketplace from './pages/GapNoVendorcontractorMarketplace';
+import GapNoProjectPortfolioCaseStudies from './pages/GapNoProjectPortfolioCaseStudies';
+import GapNoBeforeafterPhotoGallery from './pages/GapNoBeforeafterPhotoGallery';
+import GapNoPaymentInvoicingIntegration from './pages/GapNoPaymentInvoicingIntegration';
+import GapNoAgentCompanyWhiteLabel from './pages/GapNoAgentCompanyWhiteLabel';
+import GapNoNotifications0References from './pages/GapNoNotifications0References';
+import GapNoAuditLog0References from './pages/GapNoAuditLog0References';
+import GapNoWebhookSurface from './pages/GapNoWebhookSurface';
+import GapNoFileUploadModule from './pages/GapNoFileUploadModule';
+import GapNoMlsIntegration from './pages/GapNoMlsIntegration';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -104,8 +128,34 @@ function App() {
           <Route path="ai/decluttering-guide" element={<AIFeaturePage feature="decluttering-guide" title="AI Decluttering Guide" />} />
           <Route path="ai/renovation-advisor" element={<AIFeaturePage feature="renovation-advisor" title="AI Renovation Advisor" />} />
           <Route path="ai/virtual-staging" element={<AIFeaturePage feature="virtual-staging" title="AI Virtual Staging" />} />
+          <Route path="ai/competitor-analysis" element={<AIFeaturePage feature="competitor-analysis" title="AI Competitor Analysis" />} />
+          <Route path="ai/buyer-persona-targeting" element={<AIFeaturePage feature="buyer-persona-targeting" title="AI Buyer Persona Targeting" />} />
+          <Route path="ai/furniture-planner" element={<FurniturePlanner />} />
+          <Route path="ai/listing-copy" element={<ListingCopyGenerator />} />
+          <Route path="ai/roi-simulator" element={<ROISimulator />} />
         </Route>
-      </Routes>
+      
+          {/* // === Batch 04 Gaps & Frontend Mounts === */}
+          <Route path="/cf-agentic-staging-orchestration-generating" element={<CfAgenticStagingOrchestrationGenerating />} />
+          <Route path="/cf-3d-virtual-staging-with-ar-export" element={<Cf3dVirtualStagingWithArExport />} />
+          <Route path="/cf-mls-integration-with-comp-based-stagingp" element={<CfMlsIntegrationWithCompBasedStagingp />} />
+          <Route path="/cf-buyer-persona-psychology-modeling-per-ne" element={<CfBuyerPersonaPsychologyModelingPerNe />} />
+          <Route path="/cf-time-to-sale-prediction-tied-to" element={<CfTimeToSalePredictionTiedTo />} />
+          <Route path="/cf-agent-commission-optimizer-with-performa" element={<CfAgentCommissionOptimizerWithPerforma />} />
+          <Route path="/gap-no-competitor-mls-comp-analysis-endpoint" element={<GapNoCompetitorMlsCompAnalysisEndpoint />} />
+          <Route path="/gap-no-buyer-persona-targeting-endpoint" element={<GapNoBuyerPersonaTargetingEndpoint />} />
+          <Route path="/gap-no-automated-photo-enhancement-pipeline-" element={<GapNoAutomatedPhotoEnhancementPipeline />} />
+          <Route path="/gap-no-vendorcontractor-marketplace" element={<GapNoVendorcontractorMarketplace />} />
+          <Route path="/gap-no-project-portfolio-case-studies" element={<GapNoProjectPortfolioCaseStudies />} />
+          <Route path="/gap-no-beforeafter-photo-gallery" element={<GapNoBeforeafterPhotoGallery />} />
+          <Route path="/gap-no-payment-invoicing-integration" element={<GapNoPaymentInvoicingIntegration />} />
+          <Route path="/gap-no-agent-company-white-label" element={<GapNoAgentCompanyWhiteLabel />} />
+          <Route path="/gap-no-notifications-0-references" element={<GapNoNotifications0References />} />
+          <Route path="/gap-no-audit-log-0-references" element={<GapNoAuditLog0References />} />
+          <Route path="/gap-no-webhook-surface" element={<GapNoWebhookSurface />} />
+          <Route path="/gap-no-file-upload-module" element={<GapNoFileUploadModule />} />
+          <Route path="/gap-no-mls-integration" element={<GapNoMlsIntegration />} />
+</Routes>
     </BrowserRouter>
   );
 }

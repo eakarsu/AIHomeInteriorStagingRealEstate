@@ -26,7 +26,8 @@ const menuItems = [
   { path: '/market-analytics', label: 'Market Analytics', icon: '📈' },
   { path: '/listings', label: 'Listings', icon: '📋' },
 
-  { section: 'AI - Property & Rooms' },
+  { section: 'AI - Staging' },
+  { path: '/ai/furniture-planner', label: 'AI Furniture Planner', icon: '🪑' },
   { path: '/ai/property-analyzer', label: 'AI Property Analyzer', icon: '🏠' },
   { path: '/ai/room-optimizer', label: 'AI Room Optimizer', icon: '🚪' },
   { path: '/ai/staging-suggestions', label: 'AI Room Staging', icon: '🤖' },
@@ -48,6 +49,10 @@ const menuItems = [
   { path: '/ai/roi-calculator', label: 'AI ROI Calculator', icon: '📊' },
   { path: '/ai/vendor-matcher', label: 'AI Vendor Matcher', icon: '🤝' },
 
+  { section: 'AI - Listing' },
+  { path: '/ai/listing-copy', label: 'AI Listing Copy (DB)', icon: '🏡' },
+  { path: '/ai/roi-simulator', label: 'AI ROI Simulator (DB)', icon: '📊' },
+
   { section: 'AI - Marketing & Sales' },
   { path: '/ai/listing-generator', label: 'AI Listing Writer', icon: '📝' },
   { path: '/ai/before-after', label: 'AI Before/After', icon: '🔄' },
@@ -65,6 +70,8 @@ const menuItems = [
   { path: '/ai/decluttering-guide', label: 'AI Declutter Guide', icon: '🧹' },
   { path: '/ai/renovation-advisor', label: 'AI Renovation', icon: '🔨' },
   { path: '/ai/virtual-staging', label: 'AI Virtual Staging', icon: '🖥️' },
+  { path: '/ai/competitor-analysis', label: 'AI Competitor Analysis', icon: '⚔️' },
+  { path: '/ai/buyer-persona-targeting', label: 'AI Buyer Persona', icon: '🎯' },
 ];
 
 export default function Layout({ user, onLogout }) {

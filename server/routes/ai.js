@@ -1,11 +1,25 @@
 const express = require('express');
 const pool = require('../db');
 const auth = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const { callOpenRouter } = require('../openrouter');
 const router = express.Router();
 
+// Helper: log AI call results to ai_staging_suggestions table
+async function logAiSuggestion(roomId, suggestionType, suggestion, estimatedCost, model) {
+  try {
+    await pool.query(
+      `INSERT INTO ai_staging_suggestions (room_id, suggestion_type, suggestion, estimated_cost, impact_level, ai_model)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [roomId || null, suggestionType, suggestion?.substring(0, 2000) || '', estimatedCost || null, 'medium', model || 'anthropic/claude-3-5-sonnet-20241022']
+    );
+  } catch {
+    // Non-blocking — swallow log errors
+  }
+}
+
 // AI Room Staging Suggestions
-router.post('/staging-suggestions', auth, async (req, res) => {
+router.post('/staging-suggestions', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomType, roomSize, currentCondition, style, budget, propertyType } = req.body;
     const prompt = `As an expert home stager, provide detailed staging suggestions for a ${roomType} room.
@@ -27,6 +41,9 @@ Please provide:
 7. Estimated ROI percentage for this staging investment`;
 
     const result = await callOpenRouter(prompt);
+    if (!result.error) {
+      await logAiSuggestion(null, 'staging-suggestions', result.content, null, result.model);
+    }
     res.json({ success: !result.error, data: result.content, model: result.model, usage: result.usage });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -34,7 +51,7 @@ Please provide:
 });
 
 // AI Color Palette Generator
-router.post('/color-palette', auth, async (req, res) => {
+router.post('/color-palette', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomType, style, mood, existingColors, naturalLight } = req.body;
     const prompt = `As a color consultant for home staging, generate a professional color palette.
@@ -64,7 +81,7 @@ Please provide:
 });
 
 // AI Property Listing Generator
-router.post('/listing-generator', auth, async (req, res) => {
+router.post('/listing-generator', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyTitle, address, bedrooms, bathrooms, sqft, price, features, style, targetAudience } = req.body;
     const prompt = `As a luxury real estate copywriter, create a compelling property listing.
@@ -96,7 +113,7 @@ Please provide:
 });
 
 // AI Budget Estimator
-router.post('/budget-estimator', auth, async (req, res) => {
+router.post('/budget-estimator', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, sqft, rooms, style, market, timeline } = req.body;
     const prompt = `As a home staging business consultant, provide a detailed staging budget estimate.
@@ -128,7 +145,7 @@ Please provide:
 });
 
 // AI Design Style Recommender
-router.post('/style-recommender', auth, async (req, res) => {
+router.post('/style-recommender', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, architecture, neighborhood, targetBuyer, priceRange, existingFeatures } = req.body;
     const prompt = `As an interior design expert specializing in home staging, recommend the ideal design style.
@@ -159,7 +176,7 @@ Please provide:
 });
 
 // AI Furniture Placement Advisor
-router.post('/furniture-placement', auth, async (req, res) => {
+router.post('/furniture-placement', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomType, dimensions, features, style, furnitureList } = req.body;
     const prompt = `As a professional home stager, provide furniture placement advice.
@@ -189,7 +206,7 @@ Please provide:
 });
 
 // AI Before/After Description Generator
-router.post('/before-after', auth, async (req, res) => {
+router.post('/before-after', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomName, beforeState, afterStyle, changesApplied, budget } = req.body;
     const prompt = `As a home staging marketing expert, create a compelling before/after transformation narrative.
@@ -219,7 +236,7 @@ Please provide:
 });
 
 // AI Market Analysis
-router.post('/market-analysis', auth, async (req, res) => {
+router.post('/market-analysis', auth, aiRateLimiter, async (req, res) => {
   try {
     const { region, propertyType, priceRange, targetSeason } = req.body;
     const prompt = `As a real estate market analyst specializing in staging ROI, provide market analysis.
@@ -249,7 +266,7 @@ Please provide:
 });
 
 // AI Checklist Generator
-router.post('/checklist-generator', auth, async (req, res) => {
+router.post('/checklist-generator', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, rooms, style, timeline, budget } = req.body;
     const prompt = `As a professional home staging project manager, create a comprehensive staging checklist.
@@ -280,7 +297,7 @@ Please provide a day-by-day staging checklist including:
 });
 
 // AI Virtual Staging Description
-router.post('/virtual-staging', auth, async (req, res) => {
+router.post('/virtual-staging', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomType, currentState, desiredStyle, budget } = req.body;
     const prompt = `As a virtual staging expert, describe how to virtually stage this room.
@@ -310,7 +327,7 @@ Please provide:
 });
 
 // AI Property Analyzer
-router.post('/property-analyzer', auth, async (req, res) => {
+router.post('/property-analyzer', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, location, sqft, bedrooms, bathrooms, age, condition, price } = req.body;
     const prompt = `As a real estate staging strategist, analyze this property and provide a comprehensive staging strategy.
@@ -344,7 +361,7 @@ Please provide:
 });
 
 // AI Room Optimizer
-router.post('/room-optimizer', auth, async (req, res) => {
+router.post('/room-optimizer', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomType, width, length, ceilingHeight, issues, purpose } = req.body;
     const prompt = `As a spatial design expert for home staging, optimize this room for maximum buyer appeal.
@@ -376,7 +393,7 @@ Please provide:
 });
 
 // AI Client Proposal Generator
-router.post('/client-proposal', auth, async (req, res) => {
+router.post('/client-proposal', auth, aiRateLimiter, async (req, res) => {
   try {
     const { clientName, clientType, propertyType, propertyAddress, budget, timeline, goals } = req.body;
     const prompt = `As a professional home staging business consultant, create a client proposal.
@@ -410,7 +427,7 @@ Please create a professional staging proposal including:
 });
 
 // AI Appointment Planner
-router.post('/appointment-planner', auth, async (req, res) => {
+router.post('/appointment-planner', auth, aiRateLimiter, async (req, res) => {
   try {
     const { appointmentType, propertyType, propertySize, clientType, duration, goals } = req.body;
     const prompt = `As a home staging consultation expert, plan this appointment for maximum effectiveness.
@@ -443,7 +460,7 @@ Please provide:
 });
 
 // AI Invoice & Pricing Calculator
-router.post('/pricing-calculator', auth, async (req, res) => {
+router.post('/pricing-calculator', auth, aiRateLimiter, async (req, res) => {
   try {
     const { serviceType, propertyType, sqft, rooms, market, duration, extras } = req.body;
     const prompt = `As a home staging pricing strategist, calculate optimal pricing for this project.
@@ -477,7 +494,7 @@ Please provide:
 });
 
 // AI Furniture Recommender
-router.post('/furniture-recommender', auth, async (req, res) => {
+router.post('/furniture-recommender', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomType, style, budget, roomSize, existingPieces, colorScheme } = req.body;
     const prompt = `As a furniture buying specialist for home staging, recommend the perfect furniture package.
@@ -510,7 +527,7 @@ Please provide:
 });
 
 // AI Vendor Matcher
-router.post('/vendor-matcher', auth, async (req, res) => {
+router.post('/vendor-matcher', auth, aiRateLimiter, async (req, res) => {
   try {
     const { serviceNeeded, location, budget, timeline, quality, projectType } = req.body;
     const prompt = `As a home staging operations manager, recommend the ideal vendor strategy for this project.
@@ -543,7 +560,7 @@ Please provide:
 });
 
 // AI ROI Calculator
-router.post('/roi-calculator', auth, async (req, res) => {
+router.post('/roi-calculator', auth, aiRateLimiter, async (req, res) => {
   try {
     const { listingPrice, stagingCost, propertyType, market, daysOnMarket, condition } = req.body;
     const prompt = `As a real estate investment analyst, calculate the staging ROI for this property.
@@ -576,7 +593,7 @@ Please provide:
 });
 
 // AI Curb Appeal Advisor
-router.post('/curb-appeal', auth, async (req, res) => {
+router.post('/curb-appeal', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, exteriorCondition, landscaping, budget, season, issues } = req.body;
     const prompt = `As a curb appeal and exterior staging expert, provide recommendations.
@@ -609,7 +626,7 @@ Please provide:
 });
 
 // AI Lighting Design
-router.post('/lighting-design', auth, async (req, res) => {
+router.post('/lighting-design', auth, aiRateLimiter, async (req, res) => {
   try {
     const { roomType, roomSize, naturalLight, currentFixtures, style, mood } = req.body;
     const prompt = `As a lighting design specialist for home staging, create a lighting plan.
@@ -642,7 +659,7 @@ Please provide:
 });
 
 // AI Seasonal Staging
-router.post('/seasonal-staging', auth, async (req, res) => {
+router.post('/seasonal-staging', auth, aiRateLimiter, async (req, res) => {
   try {
     const { season, propertyType, style, region, targetBuyer, holidays } = req.body;
     const prompt = `As a seasonal staging expert, provide seasonal staging recommendations.
@@ -675,7 +692,7 @@ Please provide:
 });
 
 // AI Decluttering Guide
-router.post('/decluttering-guide', auth, async (req, res) => {
+router.post('/decluttering-guide', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, rooms, occupancyStatus, clutterLevel, timeline, sensitiveItems } = req.body;
     const prompt = `As a professional decluttering and pre-staging consultant, create a decluttering plan.
@@ -708,7 +725,7 @@ Please provide:
 });
 
 // AI Photo Staging Guide
-router.post('/photo-staging', auth, async (req, res) => {
+router.post('/photo-staging', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, rooms, photographer, platform, style, specialFeatures } = req.body;
     const prompt = `As a real estate photography staging expert, prepare this property for its photo shoot.
@@ -741,7 +758,7 @@ Please provide:
 });
 
 // AI Renovation Advisor
-router.post('/renovation-advisor', auth, async (req, res) => {
+router.post('/renovation-advisor', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, budget, areas, age, goal, timeline } = req.body;
     const prompt = `As a pre-sale renovation advisor specializing in staging preparation, provide renovation recommendations.
@@ -774,7 +791,7 @@ Please provide:
 });
 
 // AI Home Valuation Impact
-router.post('/valuation-impact', auth, async (req, res) => {
+router.post('/valuation-impact', auth, aiRateLimiter, async (req, res) => {
   try {
     const { currentValue, propertyType, stagingPlan, market, comparables, condition } = req.body;
     const prompt = `As a real estate valuation expert, analyze how staging will impact this property's value.
@@ -807,7 +824,7 @@ Please provide:
 });
 
 // AI Neighborhood Staging Strategy
-router.post('/neighborhood-strategy', auth, async (req, res) => {
+router.post('/neighborhood-strategy', auth, aiRateLimiter, async (req, res) => {
   try {
     const { neighborhood, demographics, priceRange, competition, trends, propertyType } = req.body;
     const prompt = `As a neighborhood market specialist, create a staging strategy tailored to this area.
@@ -840,7 +857,7 @@ Please provide:
 });
 
 // AI Staging Project Planner
-router.post('/project-planner', auth, async (req, res) => {
+router.post('/project-planner', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, rooms, budget, style, teamSize, startDate, showingDate } = req.body;
     const prompt = `As a staging project manager, create a complete project plan.
@@ -874,7 +891,7 @@ Please provide:
 });
 
 // AI Open House Optimizer
-router.post('/open-house-optimizer', auth, async (req, res) => {
+router.post('/open-house-optimizer', auth, aiRateLimiter, async (req, res) => {
   try {
     const { propertyType, style, expectedVisitors, duration, season, targetBuyer } = req.body;
     const prompt = `As an open house staging and experience expert, optimize this open house event.
@@ -907,7 +924,7 @@ Please provide:
 });
 
 // AI Social Media Content
-router.post('/social-media', auth, async (req, res) => {
+router.post('/social-media', auth, aiRateLimiter, async (req, res) => {
   try {
     const { platform, contentType, propertyType, style, targetAudience, brandVoice } = req.body;
     const prompt = `As a social media marketing expert for home staging businesses, create content.
@@ -940,7 +957,7 @@ Please provide:
 });
 
 // AI Staging Trend Forecaster
-router.post('/trend-forecaster', auth, async (req, res) => {
+router.post('/trend-forecaster', auth, aiRateLimiter, async (req, res) => {
   try {
     const { region, propertyType, timeHorizon, currentTrends } = req.body;
     const prompt = `As a home staging trend analyst, forecast upcoming design and staging trends.
@@ -964,6 +981,77 @@ Please provide:
 10. How to future-proof your staging inventory`;
 
     const result = await callOpenRouter(prompt);
+    res.json({ success: !result.error, data: result.content, model: result.model, usage: result.usage });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// AI Competitor Analysis (comparable listings)
+router.post('/competitor-analysis', auth, aiRateLimiter, async (req, res) => {
+  try {
+    const { propertyAddress, propertyType, listPrice, squareFootage, bedrooms, bathrooms, comparableListings, neighborhood } = req.body;
+    const prompt = `As a real estate competitive analyst, evaluate this listing against comparable properties and recommend pricing/staging adjustments.
+
+Subject Listing:
+- Address: ${propertyAddress || 'Unspecified'}
+- Type: ${propertyType || 'Single Family Home'}
+- List Price: $${listPrice || 'Unspecified'}
+- Square Footage: ${squareFootage || 'Unspecified'}
+- Bedrooms / Bathrooms: ${bedrooms || '?'} / ${bathrooms || '?'}
+- Neighborhood: ${neighborhood || 'Unspecified'}
+
+Comparable Listings:
+${comparableListings || 'No comparable data provided. Analyze typical comps for this profile and provide qualitative guidance.'}
+
+Provide:
+1. Comparable summary table (price/sf, days on market, staging level)
+2. Pricing recommendation (raise / hold / lower) with reasoning and target range
+3. Staging gaps vs. competitors and concrete fixes
+4. Differentiation opportunities (features to emphasize)
+5. Marketing angle that beats the comps
+6. Risk if no changes are made (estimated DOM impact)
+7. Action checklist with priority and estimated cost`;
+
+    const result = await callOpenRouter(prompt);
+    if (!result.error) {
+      await logAiSuggestion(null, 'competitor-analysis', result.content, null, result.model);
+    }
+    res.json({ success: !result.error, data: result.content, model: result.model, usage: result.usage });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// AI Buyer Persona Targeting
+router.post('/buyer-persona-targeting', auth, aiRateLimiter, async (req, res) => {
+  try {
+    const { propertyType, neighborhood, priceRange, squareFootage, bedrooms, features, lifestyleHints } = req.body;
+    const prompt = `As a buyer-persona strategist for residential real estate, develop a staging and marketing plan tuned to the most likely buyers for this property.
+
+Property:
+- Type: ${propertyType || 'Single Family Home'}
+- Neighborhood: ${neighborhood || 'Unspecified'}
+- Price Range: ${priceRange || 'Unspecified'}
+- Square Footage: ${squareFootage || 'Unspecified'}
+- Bedrooms: ${bedrooms || 'Unspecified'}
+- Notable Features: ${features || 'Unspecified'}
+- Lifestyle Hints / Demographics: ${lifestyleHints || 'Not provided'}
+
+Provide:
+1. Top 3 buyer personas (name, age range, household, income range, motivations)
+2. For each persona: emotional triggers, must-have / nice-to-have features
+3. Persona-specific staging recommendations (room-by-room)
+4. Persona-specific photography and listing copy guidance
+5. Marketing channel mix (online portals, social, agent network, open house style)
+6. Open house format and ideal timing per persona
+7. Risks of mis-targeting and how to detect early
+8. Priority ranked action plan with estimated cost`;
+
+    const result = await callOpenRouter(prompt);
+    if (!result.error) {
+      await logAiSuggestion(null, 'buyer-persona-targeting', result.content, null, result.model);
+    }
     res.json({ success: !result.error, data: result.content, model: result.model, usage: result.usage });
   } catch (err) {
     res.status(500).json({ error: err.message });
