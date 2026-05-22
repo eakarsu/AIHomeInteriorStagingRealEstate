@@ -32,6 +32,11 @@ import GapNoWebhookSurface from './pages/GapNoWebhookSurface';
 import GapNoFileUploadModule from './pages/GapNoFileUploadModule';
 import GapNoMlsIntegration from './pages/GapNoMlsIntegration';
 
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +65,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/insights/timeline" element={<TimelineView />} />
+        <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/codex/operations" element={<CodexOperationsFeature />} />
+
         <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
         <Route path="/" element={user ? <Layout user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}>
           <Route index element={<Dashboard />} />
