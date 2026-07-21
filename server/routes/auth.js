@@ -19,7 +19,7 @@ router.post('/login', async (req, res) => {
     }
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: user.role },
-      process.env.JWT_SECRET || 'ai-home-staging-secret-key-2024',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
     const user = result.rows[0];
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: user.role },
-      process.env.JWT_SECRET || 'ai-home-staging-secret-key-2024',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
     res.json({ token, user });

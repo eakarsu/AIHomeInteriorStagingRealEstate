@@ -1,71 +1,60 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "========================================="
-echo "  AI Home Interior Staging Platform"
-echo "  Starting Application..."
-echo "========================================="
+project_dir="$(cd "$(dirname "$0")" && pwd)"
+backend_port="3001"
+frontend_port="3000"
+backend_pid=""
+frontend_pid=""
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+fail() {
+  echo "start.sh: $*" >&2
+  exit 1
+}
 
-# Project directory
-DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$DIR"
+[ -f "$project_dir/.env" ] || fail "copy .env.example to .env and supply local secrets"
+jwt_secret="$(sed -n 's/^JWT_SECRET=//p' "$project_dir/.env" | tail -n 1)"
+[ "${#jwt_secret}" -ge 32 ] || fail "JWT_SECRET in .env must contain at least 32 characters"
+[ -d "$project_dir/./node_modules" ] || fail "backend dependencies are absent; run the documented npm ci step explicitly"
+[ -d "$project_dir/client/node_modules" ] || fail "frontend dependencies are absent; run the documented npm ci step explicitly"
 
-# Step 1: Kill processes on ports 3001 and 5173
-echo -e "\n${YELLOW}[1/6] Cleaning up used ports...${NC}"
-for PORT in 3001 3000; do
-  PID=$(lsof -ti :$PORT 2>/dev/null)
-  if [ -n "$PID" ]; then
-    echo -e "  Killing process on port $PORT (PID: $PID)"
-    kill -9 $PID 2>/dev/null
-    sleep 1
-  else
-    echo -e "  Port $PORT is free"
+check_port() {
+  local port="$1"
+  if command -v lsof >/dev/null 2>&1 && lsof -ti ":${port}" >/dev/null 2>&1; then
+    fail "port ${port} is already owned by another process; stop it explicitly or configure another port"
   fi
-done
+}
 
-# Step 2: Check PostgreSQL
-echo -e "\n${YELLOW}[2/6] Checking PostgreSQL...${NC}"
-if ! pg_isready -q 2>/dev/null; then
-  echo -e "  ${RED}PostgreSQL is not running. Starting...${NC}"
-  brew services start postgresql@14 2>/dev/null || brew services start postgresql 2>/dev/null
-  sleep 3
-fi
-echo -e "  ${GREEN}PostgreSQL is running${NC}"
+cleanup() {
+  trap - EXIT
+  [ -z "$frontend_pid" ] || kill "$frontend_pid" 2>/dev/null || true
+  [ -z "$backend_pid" ] || kill "$backend_pid" 2>/dev/null || true
+  [ -z "$frontend_pid" ] || wait "$frontend_pid" 2>/dev/null || true
+  [ -z "$backend_pid" ] || wait "$backend_pid" 2>/dev/null || true
+}
 
-# Step 3: Install dependencies
-echo -e "\n${YELLOW}[3/6] Installing dependencies...${NC}"
-npm install --silent 2>&1 | tail -1
-cd client && npm install --silent 2>&1 | tail -1
-cd "$DIR"
-echo -e "  ${GREEN}Dependencies installed${NC}"
+shutdown() {
+  cleanup
+  exit 130
+}
 
-# Step 4: Setup database
-echo -e "\n${YELLOW}[4/6] Setting up database...${NC}"
-node server/db-setup.js
-echo -e "  ${GREEN}Database setup complete${NC}"
+trap cleanup EXIT
+trap shutdown INT TERM
+check_port "$backend_port"
+check_port "$frontend_port"
 
-# Step 5: Seed data
-echo -e "\n${YELLOW}[5/6] Seeding database...${NC}"
-node server/seed.js
-echo -e "  ${GREEN}Database seeded${NC}"
+(
+  cd "$project_dir/."
+  node server/index.js
+) &
+backend_pid="$!"
 
-# Step 6: Start application with hot reload
-echo -e "\n${YELLOW}[6/6] Starting application with hot reload...${NC}"
-echo -e "  ${BLUE}Backend:  http://localhost:3001${NC}"
-echo -e "  ${BLUE}Frontend: http://localhost:3000${NC}"
-echo ""
-echo -e "  ${GREEN}Login Credentials:${NC}"
-echo -e "  Email:    demo@staging.com"
-echo -e "  Password: password123"
-echo ""
-echo -e "  ${YELLOW}Press Ctrl+C to stop${NC}"
-echo "========================================="
+(
+  cd "$project_dir/client"
+  npm run dev -- --host 127.0.0.1 --port "$frontend_port"
+) &
+frontend_pid="$!"
 
-# Start with concurrently (nodemon for backend hot reload, vite for frontend HMR)
-npm start
+echo "Backend child $backend_pid; frontend child $frontend_pid."
+echo "No dependency install, database creation, migration, seed, system-service start, or port-owner termination was performed."
+wait "$backend_pid" "$frontend_pid"

@@ -21,11 +21,6 @@ export default function Login({ onLogin }) {
     }
   };
 
-  const fillCredentials = () => {
-    setEmail('demo@staging.com');
-    setPassword('password123');
-  };
-
   return (
     <div className="login-page">
       <div className="login-card">
@@ -47,9 +42,6 @@ export default function Login({ onLogin }) {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        <button className="btn-fill" onClick={fillCredentials}>
-          Quick Fill Demo Credentials
-        </button>
         {error && <p className="login-error">{error}</p>}
       </div>
     </div>
