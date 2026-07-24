@@ -3,9 +3,10 @@ const https = require('https');
 async function callOpenRouter(prompt, systemPrompt = 'You are an expert AI home interior staging consultant for real estate.') {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022';
+  const baseUrl = new URL(process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1');
 
   if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
-    return { error: false, content: generateFallbackResponse(prompt) };
+    return { error: true, content: 'OpenRouter API key is not configured.' };
   }
 
   const data = JSON.stringify({
@@ -20,8 +21,9 @@ async function callOpenRouter(prompt, systemPrompt = 'You are an expert AI home 
 
   return new Promise((resolve) => {
     const options = {
-      hostname: 'openrouter.ai',
-      path: '/api/v1/chat/completions',
+      hostname: baseUrl.hostname,
+      port: baseUrl.port || 443,
+      path: `${baseUrl.pathname.replace(/\/$/, '')}/chat/completions`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,6 +39,10 @@ async function callOpenRouter(prompt, systemPrompt = 'You are an expert AI home 
       res.on('end', () => {
         try {
           const parsed = JSON.parse(body);
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            resolve({ error: true, content: parsed.error?.message || `OpenRouter HTTP ${res.statusCode}` });
+            return;
+          }
           if (parsed.choices && parsed.choices[0]) {
             resolve({
               error: false,
