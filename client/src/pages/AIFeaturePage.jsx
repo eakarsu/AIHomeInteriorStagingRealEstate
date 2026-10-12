@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
 import api from '../services/api';
+import AIReport from '../components/AIReport';
 import aiFormConfigs from './aiFormConfigs';
 
 // Which DB dropdowns each feature should show
@@ -302,6 +302,16 @@ const samplePresets = {
     { label: 'Luxury West Coast', data: { region: 'West Coast', propertyType: 'Luxury', timeHorizon: 'Next 6 months', currentTrends: 'Quiet luxury, art as focal point, natural stone, integrated technology, indoor-outdoor living' } },
     { label: 'Urban Condos Northeast', data: { region: 'Northeast', propertyType: 'Condos/Urban', timeHorizon: 'Next 3 months', currentTrends: 'Compact luxury, multifunctional furniture, bold wallpaper, home office staging, maximalism return' } },
   ],
+  'competitor-analysis': [
+    { label: 'Austin Family Home', data: { subjectProperty: '4 bed, 3 bath single-family home; 2,420 sq ft; listed at $850,000; contemporary staging completed last week.', comparables: '1) 18 Cedar Way — $835,000, 2,350 sq ft, 12 DOM, lightly staged.\n2) 44 Oak Terrace — $879,000, 2,510 sq ft, 21 DOM, professionally staged.\n3) 7 Willow Court — $810,000, 2,300 sq ft, 35 DOM, vacant.', market: 'Austin, TX suburban', priceRange: '$800k-$1.2M', targetSale: '14-30 days', goals: 'Avoid a price reduction, outperform the strongest staged comparable, and improve listing-photo engagement.' } },
+    { label: 'Seattle Condo Launch', data: { subjectProperty: '2 bed, 2 bath condo; 1,180 sq ft; proposed list price $795,000; skyline view and updated kitchen.', comparables: '1) 120 Pine St #8 — $780,000, 1,140 sq ft, 9 DOM, modern staging.\n2) 88 Union Ave #15 — $825,000, 1,225 sq ft, 18 DOM, occupied.\n3) 60 Bell St #11 — $755,000, 1,100 sq ft, 27 DOM, vacant.', market: 'Seattle, WA urban core', priceRange: '$500k-$800k', targetSale: '<14 days', goals: 'Position the view and flexible office space clearly while keeping recommendations within the existing staging inventory.' } },
+    { label: 'Miami Luxury Review', data: { subjectProperty: '3 bed, 3.5 bath waterfront penthouse; 3,050 sq ft; listed at $2,950,000; luxury modern staging.', comparables: '1) Bay Tower PH2 — $3,100,000, 3,200 sq ft, 42 DOM, designer staged.\n2) Ocean House 1701 — $2,850,000, 2,900 sq ft, 31 DOM, partially staged.\n3) Marina Grand PH4 — $3,250,000, 3,350 sq ft, 55 DOM, vacant.', market: 'Miami, FL waterfront luxury', priceRange: '$2M+', targetSale: '30-60 days', goals: 'Differentiate the terrace and water views, protect premium positioning, and identify evidence needed before changing price.' } },
+  ],
+  'buyer-persona-targeting': [
+    { label: 'Seattle Tech Condo', data: { propertyType: 'Condo', location: 'South Lake Union, Seattle, WA', priceRange: '$800k-$1.2M', features: 'Two bedrooms, dedicated office nook, skyline balcony, EV parking, gym, and walkable light rail.', lifestyle: 'Walk score 94; near major technology offices; suitable for hybrid work and low-maintenance city living.', currentMarketing: 'MLS, Zillow, brokerage email list, Instagram reels, and agent website.' } },
+    { label: 'Austin Family Home', data: { propertyType: 'Single Family', location: 'Westlake Hills, Austin, TX', priceRange: '$1.2M-$2M', features: 'Four bedrooms, pool, renovated kitchen, shaded yard, flexible playroom, and top-rated school district.', lifestyle: 'Family-oriented neighborhood with parks, short school commute, and space for entertaining and remote work.', currentMarketing: 'MLS, Realtor.com, relocation network, neighborhood mailer, and weekend open house.' } },
+    { label: 'Charleston Historic Home', data: { propertyType: 'Luxury Estate', location: 'South of Broad, Charleston, SC', priceRange: '$2M+', features: 'Restored period details, courtyard garden, chef kitchen, guest suite, off-street parking, and walkable historic district.', lifestyle: 'Turnkey historic character for design-conscious buyers, seasonal residents, and buyers who entertain frequently.', currentMarketing: 'Luxury brokerage network, MLS, editorial photography, targeted email campaign, and private broker preview.' } },
+  ],
 };
 
 export default function AIFeaturePage({ feature, title }) {
@@ -342,7 +352,11 @@ export default function AIFeaturePage({ feature, title }) {
   };
 
   const loadSample = (sample) => {
-    setFormData(sample.data);
+    const completeSample = Object.fromEntries(config.fields.map((field) => [
+      field.name,
+      sample.data[field.name] ?? field.options?.[0] ?? field.placeholder ?? `Example ${field.label.toLowerCase()}`,
+    ]));
+    setFormData(completeSample);
     setResult(null);
   };
 
@@ -457,26 +471,11 @@ export default function AIFeaturePage({ feature, title }) {
       )}
 
       {result && (
-        <div className="ai-result">
-          <h3>
-            {result.success !== false ? '✨ AI Analysis Results' : '⚠️ Error'}
-          </h3>
-          <div className="ai-result-content">
-            <ReactMarkdown>{result.data}</ReactMarkdown>
-          </div>
-          {result.model && (
-            <div className="ai-result-meta">
-              <span>Model: {result.model}</span>
-              {result.usage && (
-                <>
-                  <span>Tokens: {result.usage.total_tokens?.toLocaleString()}</span>
-                  <span>Prompt: {result.usage.prompt_tokens?.toLocaleString()}</span>
-                  <span>Response: {result.usage.completion_tokens?.toLocaleString()}</span>
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        <AIReport
+          response={result}
+          error={result.success === false ? result.data : null}
+          title={`${title} Results`}
+        />
       )}
     </div>
   );

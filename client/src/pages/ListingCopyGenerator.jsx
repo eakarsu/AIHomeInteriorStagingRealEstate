@@ -1,3 +1,4 @@
+import NativeAIControls from "../components/NativeAIControls.jsx";
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 
@@ -38,7 +39,7 @@ export default function ListingCopyGenerator() {
   const listing = result?.listing;
 
   return (
-    <div>
+    <NativeAIControls busy={loading} context="HomeInteriorStagingRealEstate"><div>
       <div className="page-header">
         <h1>AI Listing Copy Generator</h1>
       </div>
@@ -50,7 +51,7 @@ export default function ListingCopyGenerator() {
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="form-group" style={{ flex: 1, minWidth: 250, marginBottom: 0 }}>
             <label>Select Property</label>
-            <select value={propertyId} onChange={e => setPropertyId(e.target.value)}>
+            <select data-ai-field={"propertyId"} value={propertyId} onChange={e => setPropertyId(e.target.value)}>
               <option value="">Choose a property...</option>
               {properties.map(p => (
                 <option key={p.id} value={p.id}>
@@ -184,6 +185,6 @@ export default function ListingCopyGenerator() {
           )}
         </div>
       )}
-    </div>
+    </div></NativeAIControls>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import AIReport from '../components/AIReport';
+import NativeAIControls from '../components/NativeAIControls';
 import api from '../services/api';
 
 export default function FurniturePlanner() {
@@ -71,7 +72,7 @@ export default function FurniturePlanner() {
   const plan = result?.plan;
 
   return (
-    <div>
+    <NativeAIControls busy={loading} context="AI furniture planning"><div>
       <div className="page-header">
         <h1>AI Furniture Planner</h1>
       </div>
@@ -83,7 +84,7 @@ export default function FurniturePlanner() {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Room *</label>
-            <select value={roomId} onChange={e => setRoomId(e.target.value)} required>
+            <select data-ai-field="room_id" value={roomId} onChange={e => setRoomId(e.target.value)} required>
               <option value="">Select a room...</option>
               {rooms.map(r => (
                 <option key={r.id} value={r.id}>
@@ -94,7 +95,7 @@ export default function FurniturePlanner() {
           </div>
           <div className="form-group">
             <label>Style Preference</label>
-            <select value={stylePreference} onChange={e => setStylePreference(e.target.value)}>
+            <select data-ai-field="style_preference" value={stylePreference} onChange={e => setStylePreference(e.target.value)}>
               <option value="">Modern Transitional</option>
               <option value="Contemporary">Contemporary</option>
               <option value="Scandinavian">Scandinavian</option>
@@ -108,6 +109,7 @@ export default function FurniturePlanner() {
           <div className="form-group">
             <label>Daily Budget Maximum ($)</label>
             <input
+              data-ai-field="budget_max"
               type="number"
               value={budgetMax}
               onChange={e => setBudgetMax(e.target.value)}
@@ -213,13 +215,8 @@ export default function FurniturePlanner() {
       )}
 
       {result && !plan && result.rawResponse && (
-        <div className="ai-result" style={{ marginTop: 20 }}>
-          <h3>AI Response</h3>
-          <div className="ai-result-content">
-            <ReactMarkdown>{result.rawResponse}</ReactMarkdown>
-          </div>
-        </div>
+        <AIReport response={result.rawResponse} title="AI Furniture Plan" />
       )}
-    </div>
+    </div></NativeAIControls>
   );
 }

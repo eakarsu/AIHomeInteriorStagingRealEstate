@@ -1,3 +1,4 @@
+import AIReportLibrary from "./AIReportLibrary";
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 const menuItems = [
@@ -107,7 +108,7 @@ export default function Layout({ user, onLogout }) {
           </div>
           <button className="btn-logout" onClick={onLogout}>Sign Out</button>
         </div>
-      </aside>
+      <AIReportLibrary /></aside>
       <main className="main-content">
         <Outlet />
       </main>

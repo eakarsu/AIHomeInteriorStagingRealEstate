@@ -1,18 +1,26 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import api from '../services/api';
 
+const demoCredentials = {
+  email: import.meta.env.VITE_DEMO_EMAIL || 'demo@staging.com',
+  password: import.meta.env.VITE_DEMO_PASSWORD || '',
+};
+
 export default function Login({ onLogin }) {
+  const demoLoginLock = useRef(false);
+  const [demoLoginBusy, setDemoLoginBusy] = useState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, demoLoginCredentials) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email: (demoLoginCredentials?.email ?? email), password: (demoLoginCredentials?.password ?? password) });
       onLogin(res.data.user, res.data.token);
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
@@ -40,12 +48,29 @@ export default function Login({ onLogin }) {
           </div>
           <button
             type="button"
-            onClick={() => { setEmail(import.meta.env.VITE_DEMO_EMAIL || ''); setPassword(import.meta.env.VITE_DEMO_PASSWORD || ''); }}
-            disabled={!import.meta.env.VITE_DEMO_EMAIL || !import.meta.env.VITE_DEMO_PASSWORD}
-            aria-label="Auto Fill Demo Credentials"
+            onClick={async (event) => {
+              if (demoLoginLock.current) return;
+              demoLoginLock.current = true;
+              setDemoLoginBusy(true);
+              setEmail(demoCredentials.email);
+              setPassword(demoCredentials.password);
+              try {
+                if (!demoCredentials.password) {
+                  setError('Demo login is unavailable until VITE_DEMO_PASSWORD is configured.');
+                  return;
+                }
+                await handleSubmit(event, demoCredentials);
+              } finally {
+                demoLoginLock.current = false;
+                setDemoLoginBusy(false);
+              }
+            }}
+            disabled={demoLoginBusy || !demoCredentials.password}
+            aria-label="Log in as Demo"
+            title={demoCredentials.password ? 'Log in with the configured demo account' : 'Configure VITE_DEMO_PASSWORD to enable demo login'}
             style={{ width: '100%', marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', border: '1px solid currentColor', background: 'transparent', cursor: 'pointer' }}
           >
-            Auto Fill Demo Credentials
+            Log In as Demo
           </button>
           <button type="submit" className="btn-login" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import NativeAIControls from '../components/NativeAIControls';
 import api from '../services/api';
 
 const riskColors = {
@@ -64,7 +65,7 @@ export default function ROISimulator() {
   };
 
   return (
-    <div style={{ padding: '32px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <NativeAIControls busy={loading} context="staging ROI simulation"><div style={{ padding: '32px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0F172A', margin: '0 0 6px' }}>Staging ROI Simulator</h1>
         <p style={{ fontSize: 14, color: '#64748B', margin: 0 }}>
@@ -79,7 +80,7 @@ export default function ROISimulator() {
 
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Property</label>
-            <select value={form.property_id} onChange={(e) => setForm({ ...form, property_id: e.target.value })} style={inputStyle}>
+            <select data-ai-field="property_id" value={form.property_id} onChange={(e) => setForm({ ...form, property_id: e.target.value })} style={inputStyle}>
               <option value="">Select a property...</option>
               {properties.map(p => (
                 <option key={p.id} value={p.id}>
@@ -92,6 +93,7 @@ export default function ROISimulator() {
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Proposed Staging Budget ($)</label>
             <input
+              data-ai-field="proposed_budget"
               type="number"
               value={form.proposed_budget}
               onChange={(e) => setForm({ ...form, proposed_budget: e.target.value })}
@@ -102,7 +104,7 @@ export default function ROISimulator() {
 
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Staging Style</label>
-            <select value={form.style} onChange={(e) => setForm({ ...form, style: e.target.value })} style={inputStyle}>
+            <select data-ai-field="style" value={form.style} onChange={(e) => setForm({ ...form, style: e.target.value })} style={inputStyle}>
               {['Contemporary', 'Transitional', 'Modern', 'Traditional', 'Farmhouse', 'Luxury', 'Minimalist', 'Coastal'].map(s => (
                 <option key={s}>{s}</option>
               ))}
@@ -112,6 +114,7 @@ export default function ROISimulator() {
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Staging Duration (days)</label>
             <input
+              data-ai-field="timeline_days"
               type="number"
               value={form.timeline_days}
               onChange={(e) => setForm({ ...form, timeline_days: e.target.value })}
@@ -225,6 +228,6 @@ export default function ROISimulator() {
           </div>
         ) : null}
       </div>
-    </div>
+    </div></NativeAIControls>
   );
 }
